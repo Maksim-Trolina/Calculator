@@ -1,3 +1,5 @@
+using System;
+
 namespace Calculator
 {
     public class Stack<T>
@@ -27,7 +29,14 @@ namespace Calculator
 
         public void Pop()
         {
-            tail = tail.prev;
+            if (!IsEmpty())
+            {
+                tail = tail.prev;
+            }
+            else
+            {
+                throw new InvalidOperationException("Attempting to remove an item from an empty stack");
+            }
         }
 
         public bool IsEmpty()
@@ -37,7 +46,12 @@ namespace Calculator
 
         public T Top()
         {
-            return tail.value;
+            if (!IsEmpty())
+            {
+                return tail.value;
+            }
+            
+            throw new InvalidOperationException("Attempting to get an item from an empty stack");
         }
     }
 }
