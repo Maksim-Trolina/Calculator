@@ -56,10 +56,10 @@ namespace CalculatorTest
         }
 
         [Test]
-        public void My()
+        public void GetReverseNotationTest_CorrectInfixNotationWithDoubleNumber_ReverseNotation()
         {
-            string expected = "90 cos - ";
-            string infixNotation = "-cos90";
+            string expected = "pi - 4.56 - cos 3 sqrt * 56.4 ln 2.0 4 log - e ^ 2.1 - / / + ";
+            string infixNotation = "(cos(-pi-4.56)*sqrt3)+ ln(56.4)/-log(2.0,4)^e/-2.1";
 
             string actual = stringParser.GetReverseNotation(infixNotation);
 

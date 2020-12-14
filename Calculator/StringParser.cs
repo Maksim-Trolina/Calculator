@@ -26,7 +26,7 @@ namespace Calculator
                 }
                 if (IsDigit(line[i]) && (i==0 || line[i-1]!='.'))
                 {
-                    AddNum(ref result,line,ref i);
+                    AddDigits(ref result,line,ref i);
                     continue;
                 }
 
@@ -153,15 +153,27 @@ namespace Calculator
             return -1;
         }
 
-        private void AddNum(ref string result,string line,ref int curIndex)
+        private void AddDigits(ref string result,string line,ref int curIndex)
+        {
+            AddNum(ref result,line,ref curIndex);
+
+            if (curIndex < line.Length && line[curIndex] == '.')
+            {
+                result += line[curIndex++];
+
+                AddNum(ref result,line,ref curIndex);
+            }
+
+            result += ' ';
+            curIndex--;
+        }
+
+        private void AddNum(ref string result, string line, ref int curIndex)
         {
             while (curIndex<line.Length && IsDigit(line[curIndex]))
             {
                 result += line[curIndex++];
             }
-
-            result += ' ';
-            curIndex--;
         }
         
 
