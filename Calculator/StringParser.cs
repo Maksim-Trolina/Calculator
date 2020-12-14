@@ -5,7 +5,7 @@ namespace Calculator
     public class StringParser
     {
         private string[] functionsName;
-        private string[] constantsName;
+        public string[] constantsName;
 
         public StringParser()
         {
@@ -66,23 +66,11 @@ namespace Calculator
                 result += ' ';
                 functions.Pop();
             }
-            
-            actions = ReverseStack(actions);
-            operands = ReverseStack(operands);
+
+            actions = actions.ReverseStack();
+            operands = operands.ReverseStack();
             
             return result;
-        }
-
-        private Stack<T> ReverseStack<T>(Stack<T> stack)
-        {
-            Stack<T> reverseStack = new Stack<T>();
-            while (!stack.IsEmpty())
-            {
-                reverseStack.Push(stack.Top());
-                stack.Pop();
-            }
-
-            return reverseStack;
         }
 
         private bool IsConstant(string line, ref int curIndex,ref string result,Stack<string> operands)

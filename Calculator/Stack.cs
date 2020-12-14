@@ -53,5 +53,17 @@ namespace Calculator
             
             throw new InvalidOperationException("Attempting to get an item from an empty stack");
         }
+        
+        public Stack<T> ReverseStack()
+        {
+            Stack<T> reverseStack = new Stack<T>();
+            while (!IsEmpty())
+            {
+                reverseStack.Push(Top());
+                Pop();
+            }
+
+            return reverseStack;
+        }
     }
 }
