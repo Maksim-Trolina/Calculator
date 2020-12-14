@@ -12,10 +12,13 @@ namespace Calculator
             functionsName = new[] {"cos", "sin", "tg", "ctg", "ln", "log", "sqrt", "sqr"};
             constantsName = new[] {"pi", "e"};
         }
-        public string GetReverseNotation(string line)
+        public string GetReverseNotation(string line,out Stack<Actions> actions,out Stack<string> operands)
         {
             string result = "";
             
+            actions = new Stack<Actions>();
+            operands = new Stack<string>();
+
             Stack<Actions> functions = new Stack<Actions>();
 
             for (int i = 0; i < line.Length; i++)
@@ -26,7 +29,7 @@ namespace Calculator
                 }
                 if (IsDigit(line[i]) && (i==0 || line[i-1]!='.'))
                 {
-                    AddDigits(ref result,line,ref i);
+                    AddDigits(ref result,line,ref i,operands);
                     continue;
                 }
 
@@ -38,17 +41,17 @@ namespace Calculator
 
                 if (line[i] == ')')
                 {
-                    AddFunctionsAndOperations(functions,ref result);
+                    AddFunctionsAndOperations(functions,ref result,actions);
                     continue;
                 }
 
                 if (IsBinaryOperation(line,i))
                 {
-                    AddOperationToStack(functions,line,i,ref result);
+                    AddOperationToStack(functions,line,i,ref result,actions);
                     continue;
                 }
 
-                if (IsConstant(line, ref i,ref result))
+                if (IsConstant(line, ref i,ref result,operands))
                 {
                     continue;
                 }
@@ -59,14 +62,30 @@ namespace Calculator
             while (!functions.IsEmpty())
             {
                 result += functions.Top().Name;
+                actions.Push(functions.Top());
                 result += ' ';
                 functions.Pop();
             }
             
+            actions = ReverseStack(actions);
+            operands = ReverseStack(operands);
+            
             return result;
         }
 
-        private bool IsConstant(string line, ref int curIndex,ref string result)
+        private Stack<T> ReverseStack<T>(Stack<T> stack)
+        {
+            Stack<T> reverseStack = new Stack<T>();
+            while (!stack.IsEmpty())
+            {
+                reverseStack.Push(stack.Top());
+                stack.Pop();
+            }
+
+            return reverseStack;
+        }
+
+        private bool IsConstant(string line, ref int curIndex,ref string result,Stack<string> operands)
         {
             string constant = "";
 
@@ -81,6 +100,7 @@ namespace Calculator
                     if (constant == constantsName[i])
                     {
                         result += constant;
+                        operands.Push(constant);
                         result += ' ';
                         curIndex = index-1;
                         return true;
@@ -153,26 +173,29 @@ namespace Calculator
             return -1;
         }
 
-        private void AddDigits(ref string result,string line,ref int curIndex)
+        private void AddDigits(ref string result,string line,ref int curIndex,Stack<string> operands)
         {
-            AddNum(ref result,line,ref curIndex);
+            string curRes = "";
+            
+            AddNum(line,ref curIndex,ref curRes);
 
             if (curIndex < line.Length && line[curIndex] == '.')
             {
-                result += line[curIndex++];
-
-                AddNum(ref result,line,ref curIndex);
+                curRes += line[curIndex++];
+                AddNum(line,ref curIndex,ref curRes);
             }
-
+            
+            operands.Push(curRes);
+            result += curRes;
             result += ' ';
             curIndex--;
         }
 
-        private void AddNum(ref string result, string line, ref int curIndex)
+        private void AddNum(string line, ref int curIndex,ref string curRes)
         {
             while (curIndex<line.Length && IsDigit(line[curIndex]))
             {
-                result += line[curIndex++];
+                curRes += line[curIndex++];
             }
         }
         
@@ -198,11 +221,12 @@ namespace Calculator
             functions.Push(new Actions(fun,true,-1));
         }
 
-        private void AddFunctionsAndOperations(Stack<Actions> functions, ref string result)
+        private void AddFunctionsAndOperations(Stack<Actions> functions, ref string result,Stack<Actions> actions)
         {
             while (!functions.IsEmpty() && functions.Top().Name!="(")
             {
                 result += functions.Top().Name;
+                actions.Push(functions.Top());
                 result += ' ';
                 functions.Pop();
             }
@@ -214,6 +238,7 @@ namespace Calculator
                 if (!functions.IsEmpty() && functions.Top().IsFunction)
                 {
                     result += functions.Top().Name;
+                    actions.Push(functions.Top());
                     result += ' ';
                     functions.Pop();
                 }
@@ -224,7 +249,7 @@ namespace Calculator
             }*/
         }
 
-        private void AddOperationToStack(Stack<Actions> functions,string line,int curIndex,ref string result)
+        private void AddOperationToStack(Stack<Actions> functions,string line,int curIndex,ref string result,Stack<Actions> actions)
         {
             string op = "";
             op += line[curIndex];
@@ -242,6 +267,7 @@ namespace Calculator
                                         || priopity<functions.Top().Priority))
             {
                 result += functions.Top().Name;
+                actions.Push(functions.Top());
                 result += ' ';
                 functions.Pop();
             }
