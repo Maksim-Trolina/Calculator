@@ -5,10 +5,12 @@ namespace Calculator
     public class StringParser
     {
         private string[] functionsName;
+        private string[] constantsName;
 
         public StringParser()
         {
             functionsName = new[] {"cos", "sin", "tg", "ctg", "ln", "log", "sqrt", "sqr"};
+            constantsName = new[] {"pi", "e"};
         }
         public string GetReverseNotation(string line)
         {
@@ -40,16 +42,53 @@ namespace Calculator
                     continue;
                 }
 
-                if (IsBinaryOperation(line[i]))
+                if (IsBinaryOperation(line,i))
                 {
                     AddOperationToStack(functions,line[i],ref result);
+                    continue;
+                }
+
+                if (IsConstant(line, ref i,ref result))
+                {
                     continue;
                 }
                 
                 AddFunctionToStack(functions,line,ref i);
             }
 
+            while (!functions.IsEmpty())
+            {
+                result += functions.Top();
+                result += ' ';
+                functions.Pop();
+            }
+            
             return result;
+        }
+
+        private bool IsConstant(string line, ref int curIndex,ref string result)
+        {
+            string constant = "";
+
+            int index = curIndex;
+            
+            while (index<line.Length && !IsDigit(line[index]) && !IsSplite(line[index])
+            && !IsBinaryOperation(line,index) && !IsFunction(constant))
+            {
+                constant += line[index++];
+                for (int i = 0; i < constantsName.Length; i++)
+                {
+                    if (constant == constantsName[i])
+                    {
+                        result += constant;
+                        result += ' ';
+                        curIndex = index-1;
+                        return true;
+                    }
+                }
+            }
+
+            return false;
         }
 
         private bool IsSplite(char c)
@@ -65,10 +104,13 @@ namespace Calculator
                    || c == '9';
         }
 
-        private bool IsBinaryOperation(char c)
+        private bool IsBinaryOperation(string line,int curIndex)
         {
-            return c == '+' || c == '-' || c == '*'
-                   || c == '/' || c == '^';
+            return line[curIndex] == '+'
+                   || line[curIndex] == '-'
+                   || line[curIndex] == '*' 
+                   || line[curIndex] == '/' 
+                   || line[curIndex] == '^';
         }
         
         private bool IsFunction(string function)
@@ -83,6 +125,11 @@ namespace Calculator
 
             return false;
         }
+
+        private bool IsUnaryOperation(string line,int index)
+        {
+            return !(index > 0 && (line[index - 1] == ')' || IsDigit(line[index - 1])));
+        }
         
         private int GetPriorityOperation(string op)
         {
@@ -96,14 +143,19 @@ namespace Calculator
                 return 2;
             }
 
-            return 3;
+            if (op == "^")
+            {
+                return 3;
+            }
+
+            return -1;
         }
 
         private void AddNum(ref string result,string line,ref int curIndex)
         {
             while (curIndex<line.Length && IsDigit(line[curIndex]))
             {
-                result += line[curIndex];
+                result += line[curIndex++];
             }
 
             result += ' ';
@@ -117,6 +169,7 @@ namespace Calculator
 
             while (curIndex<line.Length && !IsFunction(fun))
             {
+                fun += line[curIndex];
                 curIndex++;
             }
 
@@ -143,11 +196,18 @@ namespace Calculator
             if (!functions.IsEmpty() && functions.Top() == "(")
             {
                 functions.Pop();
+
+                if (!functions.IsEmpty() && IsFunction(functions.Top()))
+                {
+                    result += functions.Top();
+                    result += ' ';
+                    functions.Pop();
+                }
             }
-            else
+            /*else
             {
                 //выдать ошибку,тк строка не корректно задана
-            }
+            }*/
         }
 
         private void AddOperationToStack(Stack<string> functions,char operation,ref string result)
@@ -155,8 +215,8 @@ namespace Calculator
             string op = "";
             op += operation;
 
-            while (!functions.IsEmpty() && IsFunction(functions.Top())
-                                        && GetPriorityOperation(op)<GetPriorityOperation(functions.Top()))
+            while (!functions.IsEmpty() && (IsFunction(functions.Top())
+                                        || GetPriorityOperation(op)<GetPriorityOperation(functions.Top())))
             {
                 result += functions.Top();
                 result += ' ';
@@ -165,6 +225,5 @@ namespace Calculator
             
             functions.Push(op);
         }
-        
     }
 }
