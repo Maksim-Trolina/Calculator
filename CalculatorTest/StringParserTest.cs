@@ -79,7 +79,6 @@ namespace CalculatorTest
         [Test]
         public void GetReverseNotationTest_CorrectInfixNotationWithDoubleNumber_ActionsAndOperandsStacks()
         {
-            string expected = "pi - 4.56 - cos 3 sqrt * 56.4 ln 2.0 4 log - e ^ 2.1 - / / + ";
             string infixNotation = "(cos(-pi-4.56)*sqrt3)+ ln(56.4)/-log(2.0,4)^e/-2.1";
             Stack<Actions> actions = new Stack<Actions>();
             Stack<string> operands = new Stack<string>();
