@@ -44,16 +44,16 @@ namespace CalculatorTest
             Assert.AreEqual(expected,actual);
         }
 
-        /*[Test]
+        [Test]
         public void GetReverseNotationTest_CorrectInfixNotationWithUnaryMinus_ReverseNotation()
         {
             string expected = "pi - 45 - cos 3 sqr * 56 ctg 2 4 log - e ^ 2 / / + ";
-            string infixNotation = "(cos(-pi-45)*sqr3) + ctg(56)/-log(2 4)^e/2";
+            string infixNotation = "(cos(-pi-45)*sqr3)+ ctg(56)/-log(2 4)^e/2";
 
             string actual = stringParser.GetReverseNotation(infixNotation);
 
             Assert.AreEqual(expected,actual);
-        }*/
+        }
 
         [Test]
         public void My()

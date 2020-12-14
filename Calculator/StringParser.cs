@@ -16,7 +16,7 @@ namespace Calculator
         {
             string result = "";
             
-            Stack<string> functions = new Stack<string>();
+            Stack<Actions> functions = new Stack<Actions>();
 
             for (int i = 0; i < line.Length; i++)
             {
@@ -24,7 +24,7 @@ namespace Calculator
                 {
                     continue;
                 }
-                if (IsDigit(line[i]))
+                if (IsDigit(line[i]) && (i==0 || line[i-1]!='.'))
                 {
                     AddNum(ref result,line,ref i);
                     continue;
@@ -32,7 +32,7 @@ namespace Calculator
 
                 if (line[i] == '(')
                 {
-                    functions.Push("(");
+                    functions.Push(new Actions("(",false,-1));
                     continue;
                 }
 
@@ -44,7 +44,7 @@ namespace Calculator
 
                 if (IsBinaryOperation(line,i))
                 {
-                    AddOperationToStack(functions,line[i],ref result);
+                    AddOperationToStack(functions,line,i,ref result);
                     continue;
                 }
 
@@ -58,7 +58,7 @@ namespace Calculator
 
             while (!functions.IsEmpty())
             {
-                result += functions.Top();
+                result += functions.Top().Name;
                 result += ' ';
                 functions.Pop();
             }
@@ -126,9 +126,11 @@ namespace Calculator
             return false;
         }
 
-        private bool IsUnaryOperation(string line,int index)
+        private bool IsUnaryOperation(string line,int index,Stack<Actions> functions)
         {
-            return !(index > 0 && (line[index - 1] == ')' || IsDigit(line[index - 1])));
+            return index == 0 || IsBinaryOperation(line,index-1)
+                              || line[index-1] == '('
+                              || !functions.IsEmpty() && functions.Top().IsFunction;
         }
         
         private int GetPriorityOperation(string op)
@@ -163,14 +165,13 @@ namespace Calculator
         }
         
 
-        private void AddFunctionToStack(Stack<string> functions, string line, ref int curIndex)
+        private void AddFunctionToStack(Stack<Actions> functions, string line, ref int curIndex)
         {
             string fun = "";
 
             while (curIndex<line.Length && !IsFunction(fun))
             {
-                fun += line[curIndex];
-                curIndex++;
+                fun += line[curIndex++];
             }
 
             if (curIndex < line.Length && fun == "sqr" && line[curIndex]=='t')
@@ -181,25 +182,26 @@ namespace Calculator
 
             curIndex--;
             
-            functions.Push(fun);
+            
+            functions.Push(new Actions(fun,true,-1));
         }
 
-        private void AddFunctionsAndOperations(Stack<string> functions, ref string result)
+        private void AddFunctionsAndOperations(Stack<Actions> functions, ref string result)
         {
-            while (!functions.IsEmpty() && functions.Top()!="(")
+            while (!functions.IsEmpty() && functions.Top().Name!="(")
             {
-                result += functions.Top();
+                result += functions.Top().Name;
                 result += ' ';
                 functions.Pop();
             }
 
-            if (!functions.IsEmpty() && functions.Top() == "(")
+            if (!functions.IsEmpty() && functions.Top().Name == "(")
             {
                 functions.Pop();
 
-                if (!functions.IsEmpty() && IsFunction(functions.Top()))
+                if (!functions.IsEmpty() && functions.Top().IsFunction)
                 {
-                    result += functions.Top();
+                    result += functions.Top().Name;
                     result += ' ';
                     functions.Pop();
                 }
@@ -210,20 +212,29 @@ namespace Calculator
             }*/
         }
 
-        private void AddOperationToStack(Stack<string> functions,char operation,ref string result)
+        private void AddOperationToStack(Stack<Actions> functions,string line,int curIndex,ref string result)
         {
             string op = "";
-            op += operation;
-
-            while (!functions.IsEmpty() && (IsFunction(functions.Top())
-                                        || GetPriorityOperation(op)<GetPriorityOperation(functions.Top())))
+            op += line[curIndex];
+            int priopity;
+            if (IsUnaryOperation(line, curIndex,functions))
             {
-                result += functions.Top();
+                priopity = 4;
+            }
+            else
+            {
+                priopity = GetPriorityOperation(op);
+            }
+
+            while (!functions.IsEmpty() && (functions.Top().IsFunction
+                                        || priopity<functions.Top().Priority))
+            {
+                result += functions.Top().Name;
                 result += ' ';
                 functions.Pop();
             }
             
-            functions.Push(op);
+            functions.Push(new Actions(op,false,priopity));
         }
     }
 }
