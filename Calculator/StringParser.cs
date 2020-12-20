@@ -1,3 +1,4 @@
+using System;
 using Microsoft.VisualBasic;
 
 namespace Calculator
@@ -61,6 +62,13 @@ namespace Calculator
 
             while (!functions.IsEmpty())
             {
+                if (!IsFunction(functions.Top().Name) && (functions.Top().Name.Length == 0 ||
+                    functions.Top().Name[0] != '+' && functions.Top().Name[0] != '-' &&
+                     functions.Top().Name[0] != '*' && functions.Top().Name[0] != '/' && 
+                    functions.Top().Name[0] != '^'))
+                {
+                    throw new Exception("Строка не корректно задана");
+                }
                 result += functions.Top().Name;
                 actions.Push(functions.Top());
                 result += ' ';
@@ -231,10 +239,10 @@ namespace Calculator
                     functions.Pop();
                 }
             }
-            /*else
+            else
             {
-                //выдать ошибку,тк строка не корректно задана
-            }*/
+                throw new Exception("Строка не корректно задана");
+            }
         }
 
         private void AddOperationToStack(Stack<Actions> functions,string line,int curIndex,ref string result,Stack<Actions> actions)
